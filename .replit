@@ -4,3 +4,40 @@ expertMode = true
 
 [nix]
 channel = "stable-25_05"
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "AI Tutor App"
+
+[[workflows.workflow]]
+name = "AI Tutor App"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run dev:full"
+waitForPort = 5000
+
+[workflows.workflow.metadata]
+outputType = "webview"
+
+[[ports]]
+localPort = 5000
+externalPort = 80
+
+[[ports]]
+localPort = 34071
+externalPort = 3000
+
+[deployment]
+deploymentTarget = "autoscale"
+run = ["npm", "run", "dev:full"]
+build = ["npm", "run", "build"]
