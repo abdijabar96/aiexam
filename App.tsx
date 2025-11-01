@@ -8,31 +8,12 @@ import { BookOpenIcon } from './components/icons/BookOpenIcon';
 import { NoteUploader } from './components/NoteUploader';
 import { ImageUploader } from './components/ImageUploader';
 import { SET_BOOKS } from './constants';
-
-// Check for the API key immediately. This is more robust than using useEffect.
-const apiKeyMissing = !process.env.API_KEY;
+import { EssaySection } from './components/EssaySection';
 
 const App: React.FC = () => {
-  if (apiKeyMissing) {
-    return (
-      <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center p-4 text-center">
-        <div className="bg-red-900/50 border border-red-700 rounded-lg p-6 md:p-8 max-w-2xl">
-          <h1 className="text-2xl font-bold text-red-200 mb-4">Configuration Error</h1>
-          <p className="text-red-300">
-            The application is missing the required API key for the Gemini API.
-          </p>
-          <p className="mt-4 text-gray-400 text-sm">
-            If you are the owner of this application, please ensure you have set the 
-            <code className="bg-gray-700 text-yellow-300 font-mono p-1 rounded-md mx-1">API_KEY</code> 
-            environment variable in your Vercel project settings and redeployed the application.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
   const [question, setQuestion] = useState<string>('');
+  const [essayQuestion, setEssayQuestion] = useState<string>('');
   const [answer, setAnswer] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -43,6 +24,7 @@ const App: React.FC = () => {
   const handleSelectSubject = (subject: Subject) => {
     setSelectedSubject(subject);
     setQuestion('');
+    setEssayQuestion('');
     setAnswer('');
     setError(null);
     setImage(null);
@@ -57,30 +39,51 @@ const App: React.FC = () => {
   };
 
   const handleSubmit = useCallback(async () => {
-    if (!selectedSubject || (!question.trim() && !image)) return;
+    if (!selectedSubject) return;
+
+    let currentQuestion = question.trim();
+    let currentBook = selectedBook;
+
+    // Determine which question to use
+    const isEssay = selectedSubject === Subject.English || selectedSubject === Subject.Kiswahili;
+    if (isEssay) {
+      currentQuestion = essayQuestion.trim();
+      if (!currentBook || !currentQuestion) return;
+    } else if (!currentQuestion && !image) {
+      return;
+    }
 
     setIsLoading(true);
     setAnswer('');
     setError(null);
 
     const notes = syllabusNotes[selectedSubject] || '';
-    const currentQuestion = question.trim() || (image ? "Solve the problem in the image." : "");
-    const currentBook = (selectedSubject === Subject.English || selectedSubject === Subject.Kiswahili) && selectedBook ? selectedBook : undefined;
+    
+    // For Math with only image, set a default question
+    if (selectedSubject === Subject.Math && image && !currentQuestion) {
+      currentQuestion = "Solve the problem in the image.";
+    }
 
     try {
-      const result = await getAIAnswer(selectedSubject, currentQuestion, notes, image, currentBook);
-      setAnswer(result);
+      const result = await getAIAnswer(selectedSubject, currentQuestion, notes, image, isEssay ? currentBook : undefined);
+      // The service now handles errors and returns a string, so we can check for error patterns if needed,
+      // but for now we'll just display it. A more robust solution might return an object { answer: string } | { error: string }
+      if (result.toLowerCase().includes("error occurred")) {
+          setError(result);
+      } else {
+          setAnswer(result);
+      }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
       setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
-  }, [selectedSubject, question, syllabusNotes, image, selectedBook]);
+  }, [selectedSubject, question, essayQuestion, syllabusNotes, image, selectedBook]);
 
   const showUploader = selectedSubject === Subject.Business || selectedSubject === Subject.Chemistry;
   const showImageUploader = selectedSubject === Subject.Math;
-  const showBookSelector = selectedSubject === Subject.English || selectedSubject === Subject.Kiswahili;
+  const showEssaySection = selectedSubject === Subject.English || selectedSubject === Subject.Kiswahili;
 
   return (
     <div className="min-h-screen bg-gray-900 text-white font-sans flex flex-col items-center p-4 sm:p-8">
@@ -106,40 +109,31 @@ const App: React.FC = () => {
         </div>
         
         {selectedSubject && (
-            <div className="bg-gray-800/50 p-6 rounded-xl border border-gray-700 space-y-8">
-                {showUploader && <NoteUploader selectedSubject={selectedSubject} onNoteUpload={handleNoteUpload} syllabusNotes={syllabusNotes} />}
-                {showImageUploader && <ImageUploader image={image} onImageChange={setImage} isLoading={isLoading} />}
-                
-                {showBookSelector && (
-                    <div className="space-y-3">
-                        <h2 className="text-lg font-semibold text-gray-300 text-center flex items-center justify-center gap-2">
-                            <BookOpenIcon className="w-5 h-5" />
-                            Select a Set Book (Optional)
-                        </h2>
-                        <select
-                            value={selectedBook}
-                            onChange={(e) => setSelectedBook(e.target.value)}
-                            disabled={isLoading}
-                            className="w-full p-3 bg-gray-800 border-2 border-gray-600 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-brand-green focus:border-transparent transition-colors disabled:opacity-50"
-                            aria-label="Select a set book"
-                        >
-                            <option value="">-- General {selectedSubject} Question --</option>
-                            {(SET_BOOKS[selectedSubject as Subject.English | Subject.Kiswahili] || []).map((book) => (
-                            <option key={book} value={book}>{book}</option>
-                            ))}
-                        </select>
-                    </div>
-                )}
-
-                <QuestionInput
-                    question={question}
-                    setQuestion={setQuestion}
-                    onSubmit={handleSubmit}
-                    isLoading={isLoading}
-                    selectedSubject={selectedSubject}
-                    hasImage={!!image}
-                />
-            </div>
+          <div className="bg-gray-800/50 p-6 rounded-xl border border-gray-700 space-y-8">
+            {showUploader && <NoteUploader selectedSubject={selectedSubject} onNoteUpload={handleNoteUpload} syllabusNotes={syllabusNotes} />}
+            {showImageUploader && <ImageUploader image={image} onImageChange={setImage} isLoading={isLoading} />}
+            
+            {showEssaySection ? (
+              <EssaySection 
+                selectedSubject={selectedSubject as Subject.English | Subject.Kiswahili}
+                isLoading={isLoading}
+                onSubmit={handleSubmit}
+                selectedBook={selectedBook}
+                setSelectedBook={setSelectedBook}
+                essayQuestion={essayQuestion}
+                setEssayQuestion={setEssayQuestion}
+              />
+            ) : (
+               <QuestionInput
+                  question={question}
+                  setQuestion={setQuestion}
+                  onSubmit={handleSubmit}
+                  isLoading={isLoading}
+                  selectedSubject={selectedSubject}
+                  hasImage={!!image}
+              />
+            )}
+          </div>
         )}
 
         {selectedSubject && (
