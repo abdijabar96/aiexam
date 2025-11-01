@@ -7,11 +7,12 @@ import { Subject } from '../types';
 let ai: GoogleGenAI | null = null;
 const getAiInstance = () => {
   if (!ai) {
-    if (!process.env.API_KEY) {
+    const apiKey = import.meta.env.VITE_GOOGLE_API_KEY;
+    if (!apiKey) {
       // This is a fallback and should ideally not be reached if the UI check works correctly.
-      throw new Error("API_KEY environment variable not set. This should have been caught by the UI.");
+      throw new Error("VITE_GOOGLE_API_KEY environment variable not set. This should have been caught by the UI.");
     }
-    ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    ai = new GoogleGenAI({ apiKey });
   }
   return ai;
 };
