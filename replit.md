@@ -75,9 +75,10 @@ This executes:
 ### Recent Changes (Nov 1, 2025)
 - Migrated from Vercel Edge runtime to Express.js for Replit compatibility
 - Updated Vite config to use port 5000 (required for Replit webview)
+- **Added `allowedHosts: true` to Vite config** (critical for Replit's dynamic proxy domains)
 - Added API proxy in Vite to route `/api` requests to backend
 - Removed API key exposure from frontend (now backend-only)
-- Configured HMR for Replit's proxy environment
+- Configured HMR for Replit's proxy environment (WSS protocol on port 443)
 - Installed all required dependencies including pdfjs-dist
 
 ### Migration from Vercel
