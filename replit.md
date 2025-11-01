@@ -3,6 +3,8 @@
 ## Overview
 This is an AI-powered tutoring application designed for the Kenyan 8-4-4 secondary school curriculum (Forms 1-4). The app uses Google's Gemini AI to answer questions about various subjects including History, Business Studies, Biology, Chemistry, Mathematics, English, and Kiswahili.
 
+**Access Control**: The application requires a one-time access code to use. Administrators can generate and manage these codes through the admin panel.
+
 ## Project Architecture
 
 ### Technology Stack
@@ -49,15 +51,24 @@ This is an AI-powered tutoring application designed for the Kenyan 8-4-4 seconda
 - Provides subject-specific AI tutoring with custom system instructions
 
 ### Key Features
-1. **Subject Selection**: Seven subjects from Kenyan curriculum
-2. **Note Upload**: Upload syllabus booklets (.txt, .md, .pdf, .docx) for Business and Chemistry
-3. **Image Upload**: Upload math problem images for Mathematics subject
-4. **Essay Questions**: Special interface for English and Kiswahili with set book selection
-5. **AI-Powered Answers**: Gemini AI provides curriculum-aligned responses
+1. **Access Control System**: One-time access codes protect the tutor application
+2. **Admin Dashboard**: Generate and manage access codes at `/admin`
+3. **Subject Selection**: Seven subjects from Kenyan curriculum
+4. **Note Upload**: Upload syllabus booklets (.txt, .md, .pdf, .docx) for Business and Chemistry
+5. **Image Upload**: Upload math problem images for Mathematics subject
+6. **Essay Questions**: Special interface for English and Kiswahili with set book selection
+7. **AI-Powered Answers**: Gemini AI provides curriculum-aligned responses
+
+### Authentication & Access
+- **User Access**: Users visit the main page and enter a one-time access code
+- **Admin Panel**: Accessible at `/admin` with the admin password
+- **Code Management**: Admins can generate, view active codes, and see used codes
+- **One-Time Codes**: Each code can only be used once, then it's moved to used codes list
 
 ## Environment Variables
 
 - `GEMINI_API_KEY`: Google Gemini API key (stored in Replit Secrets)
+- `ADMIN_PASSWORD`: Password for admin panel access (stored in Replit Secrets)
 
 ## Running the Application
 
@@ -73,6 +84,8 @@ This executes:
 ## Development Notes
 
 ### Recent Changes (Nov 1, 2025)
+
+**Initial Setup:**
 - Migrated from Vercel Edge runtime to Express.js for Replit compatibility
 - Updated Vite config to use port 5000 (required for Replit webview)
 - **Added `allowedHosts: true` to Vite config** (critical for Replit's dynamic proxy domains)
@@ -80,6 +93,14 @@ This executes:
 - Removed API key exposure from frontend (now backend-only)
 - Configured HMR for Replit's proxy environment (WSS protocol on port 443)
 - Installed all required dependencies including pdfjs-dist
+
+**Authentication System:**
+- Added one-time access code system to control tutor access
+- Created admin panel at `/admin` for code management
+- Implemented secure admin authentication with password
+- Added file-based storage for access codes (data/codes.json)
+- Codes are 8-character hex strings, single-use only
+- Admin can generate, view, and delete access codes
 
 ### Migration from Vercel
 The original app used Vercel's Edge runtime for serverless functions. For Replit:
@@ -91,6 +112,28 @@ The original app used Vercel's Edge runtime for serverless functions. For Replit
 ## User Preferences
 None specified yet.
 
+## Usage Instructions
+
+### For Administrators
+1. Visit `/admin` to access the admin panel
+2. Login with your admin password (set in ADMIN_PASSWORD secret)
+3. Click "Generate New Code" to create access codes
+4. Share the generated codes with users
+5. View active and used codes in the dashboard
+6. Delete codes that are no longer needed
+
+### For Users
+1. Visit the main page
+2. Enter the access code provided by your administrator
+3. Once verified, you'll have permanent access (stored in browser)
+4. Select a subject and start asking questions
+
 ## Known Issues
 - Browser console shows HMR WebSocket warnings - these are cosmetic and don't affect functionality
 - CDN Tailwind warning in production - consider installing Tailwind CSS properly for production builds
+
+## Future Improvements
+- Add session expiration for admin tokens
+- Implement server-side validation of admin sessions on page load
+- Add optional expiration time for user access codes
+- Improve error handling for network failures in admin panel
