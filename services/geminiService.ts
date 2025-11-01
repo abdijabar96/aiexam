@@ -2,14 +2,23 @@
 import { GoogleGenAI } from "@google/genai";
 import { Subject } from '../types';
 
-if (!process.env.API_KEY) {
-  throw new Error("API_KEY environment variable not set");
-}
-
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Lazily initialize the AI instance to avoid a module-level crash if the API key is missing.
+// The main App component will handle showing a user-friendly error.
+let ai: GoogleGenAI | null = null;
+const getAiInstance = () => {
+  if (!ai) {
+    if (!process.env.API_KEY) {
+      // This is a fallback and should ideally not be reached if the UI check works correctly.
+      throw new Error("API_KEY environment variable not set. This should have been caught by the UI.");
+    }
+    ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+  }
+  return ai;
+};
 
 export const getAIAnswer = async (subject: Subject, question: string, notes?: string, imageBase64?: string | null, book?: string): Promise<string> => {
   try {
+    const aiInstance = getAiInstance();
     let systemInstruction = `You are an expert AI tutor specializing exclusively in the Kenyan secondary school syllabus. Your knowledge is strictly limited to the content covered in the official curriculum for Forms 1 through 4 in Kenya. Do not provide any information, examples, or context from outside this syllabus, even if it is related or more advanced.
 
 Your task is to answer the following question from the perspective of the Kenyan syllabus for the specified subject.
@@ -60,7 +69,7 @@ Answer the question based only on the notes provided above.`;
 
     const model = (subject === Subject.History || subject === Subject.English || subject === Subject.Kiswahili) ? 'gemini-2.5-pro' : 'gemini-2.5-flash';
 
-    const response = await ai.models.generateContent({
+    const response = await aiInstance.models.generateContent({
       model,
       contents: { parts },
       config: {

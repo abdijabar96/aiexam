@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { Subject, SyllabusNotes } from './types';
 import { getAIAnswer } from './services/geminiService';
 import { SubjectSelector } from './components/SubjectSelector';
@@ -9,8 +9,28 @@ import { NoteUploader } from './components/NoteUploader';
 import { ImageUploader } from './components/ImageUploader';
 import { SET_BOOKS } from './constants';
 
+// Check for the API key immediately. This is more robust than using useEffect.
+const apiKeyMissing = !process.env.API_KEY;
 
 const App: React.FC = () => {
+  if (apiKeyMissing) {
+    return (
+      <div className="min-h-screen bg-gray-900 text-white flex flex-col items-center justify-center p-4 text-center">
+        <div className="bg-red-900/50 border border-red-700 rounded-lg p-6 md:p-8 max-w-2xl">
+          <h1 className="text-2xl font-bold text-red-200 mb-4">Configuration Error</h1>
+          <p className="text-red-300">
+            The application is missing the required API key for the Gemini API.
+          </p>
+          <p className="mt-4 text-gray-400 text-sm">
+            If you are the owner of this application, please ensure you have set the 
+            <code className="bg-gray-700 text-yellow-300 font-mono p-1 rounded-md mx-1">API_KEY</code> 
+            environment variable in your Vercel project settings and redeployed the application.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
   const [question, setQuestion] = useState<string>('');
   const [answer, setAnswer] = useState<string>('');
@@ -19,7 +39,6 @@ const App: React.FC = () => {
   const [syllabusNotes, setSyllabusNotes] = useState<SyllabusNotes>({});
   const [image, setImage] = useState<string | null>(null);
   const [selectedBook, setSelectedBook] = useState<string>('');
-
 
   const handleSelectSubject = (subject: Subject) => {
     setSelectedSubject(subject);
