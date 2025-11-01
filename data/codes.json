@@ -1,10 +1,5 @@
 {
-  "accessCodes": [
-    {
-      "code": "TEST1234",
-      "createdAt": "2025-11-01T00:00:00.000Z"
-    }
-  ],
+  "accessCodes": [],
   "usedCodes": [
     "D87BD435"
   ]
