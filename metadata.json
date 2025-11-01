@@ -1,0 +1,7 @@
+{
+  "name": "Kenya Syllabus AI Tutor",
+  "description": "An AI-powered tool that answers questions on History, Business, Biology, Chemistry, and Math, strictly based on the Kenyan secondary school syllabus.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
