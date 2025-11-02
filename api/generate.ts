@@ -10,8 +10,8 @@ export default async function handler(req: Request) {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405, headers: { 'Content-Type': 'application/json' } });
   }
   
-  if (!process.env.API_KEY) {
-    return new Response(JSON.stringify({ error: 'API_KEY environment variable not set on the server.' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+  if (!process.env.GEMINI_API_KEY) {
+    return new Response(JSON.stringify({ error: 'GEMINI_API_KEY environment variable not set on the server.' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
   }
 
   try {
@@ -27,7 +27,7 @@ export default async function handler(req: Request) {
       return new Response(JSON.stringify({ error: 'Missing required parameters.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
     }
 
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     
     let systemInstruction = `You are an expert AI tutor specializing exclusively in the Kenyan secondary school syllabus. Your knowledge is strictly limited to the content covered in the official curriculum for Forms 1 through 4 in Kenya. Do not provide any information, examples, or context from outside this syllabus, even if it is related or more advanced.
 
