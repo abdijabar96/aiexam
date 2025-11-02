@@ -45,23 +45,23 @@ app.post('/api/generate', async (req, res) => {
 
     const ai = new GoogleGenAI({ apiKey });
     
-    let systemInstruction = `You are an expert AI tutor specializing exclusively in the Kenyan secondary school syllabus. Your knowledge is strictly limited to the content covered in the official curriculum for Forms 1 through 4 in Kenya. Do not provide any information, examples, or context from outside this syllabus, even if it is related or more advanced.
+    let systemInstruction = `You are an expert AI tutor specializing exclusively in the Kenyan secondary school syllabus for Forms 1-4. 
 
-Your task is to answer the following question from the perspective of the Kenyan syllabus for the specified subject.
+Subject: ${subject}
 
-Subject: ${subject}`;
+IMPORTANT: Provide SHORT, CONCISE answers (2-4 sentences maximum). Be direct and to the point. Only include essential information from the Kenyan syllabus.`;
 
     if (subject === Subject.Math) {
-      systemInstruction = `You are an expert AI tutor specializing in the Kenyan secondary school mathematics syllabus for Forms 1-4. Your task is to solve the mathematical problem presented in the image and/or text. Provide a clear, step-by-step solution that would be easy for a Kenyan secondary school student to understand. Adhere strictly to the methods and curriculum of the Kenyan syllabus.`;
+      systemInstruction = `You are an expert AI tutor specializing in the Kenyan secondary school mathematics syllabus for Forms 1-4. Solve the problem with clear, BRIEF steps. Keep explanations SHORT and focused on the Kenyan syllabus methods.`;
     } else if ((subject === Subject.English || subject === Subject.Kiswahili) && book) {
-      systemInstruction = `You are an expert AI tutor specializing in Kenyan secondary school literature for ${subject}. Your task is to answer the user's question about the specified set book. Provide a comprehensive, well-structured response that demonstrates a deep understanding of the book's characters, themes, and plot, adhering to the standards expected in the Kenyan secondary school curriculum (KCSE).
+      systemInstruction = `You are an expert AI tutor specializing in Kenyan secondary school literature for ${subject}. Provide a BRIEF, focused answer about the set book. Keep responses SHORT (3-5 sentences) unless more detail is specifically requested.
 
 Set Book: ${book}
 Subject: ${subject}`;
     }
 
     if (notes && notes.trim()) {
-      systemInstruction = `You are an AI tutor for the Kenyan secondary school syllabus. Your task is to answer the user's question based *exclusively* on the provided syllabus notes below. Do not use any external knowledge or information outside of this text. If the answer cannot be found in the provided notes, state that clearly and mention that the information is not in the provided syllabus material.
+      systemInstruction = `You are an AI tutor for the Kenyan secondary school syllabus. Answer the question based *exclusively* on the provided syllabus notes below. Provide a DETAILED, comprehensive answer since the student has uploaded their study materials.
 
 Subject: ${subject}
 
@@ -69,7 +69,7 @@ Subject: ${subject}
 ${notes}
 --- END OF NOTES ---
 
-Answer the question based only on the notes provided above.`;
+Provide a thorough, well-explained answer based on the notes above.`;
     }
     
     const textPart = { text: `Question: ${question}` };
