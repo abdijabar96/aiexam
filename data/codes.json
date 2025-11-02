@@ -1,5 +1,22 @@
 {
-  "accessCodes": [],
+  "accessCodes": [
+    {
+      "code": "TEST1234",
+      "createdAt": "2025-11-02T15:18:00.000Z"
+    },
+    {
+      "code": "DEMO5678",
+      "createdAt": "2025-11-02T15:18:00.000Z"
+    },
+    {
+      "code": "ACCESS99",
+      "createdAt": "2025-11-02T15:18:00.000Z"
+    },
+    {
+      "code": "A04F62BC",
+      "createdAt": "2025-11-02T15:19:23.695Z"
+    }
+  ],
   "usedCodes": [
     "D87BD435"
   ]
