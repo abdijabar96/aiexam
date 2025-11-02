@@ -27,7 +27,7 @@ export async function createAccessCode(): Promise<string> {
 
 export async function verifyAccessCode(code: string): Promise<boolean> {
   try {
-    // Check if code exists in access codes
+    // Check if code exists in access codes (reusable - unlimited uses)
     const [existingCode] = await db
       .select()
       .from(accessCodes)
@@ -37,14 +37,7 @@ export async function verifyAccessCode(code: string): Promise<boolean> {
       return false;
     }
     
-    // Move code to used codes
-    await db.insert(usedCodes).values({
-      code: existingCode.code,
-    });
-    
-    // Delete from access codes
-    await db.delete(accessCodes).where(eq(accessCodes.code, code));
-    
+    // Code is valid - no need to delete, allowing unlimited reuse
     return true;
   } catch (error) {
     console.error('Error verifying access code:', error);
