@@ -1,13 +1,12 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Subject, SyllabusNotes } from './types';
-import { getAIAnswer } from './services/geminiService';
+import { streamAIAnswer } from './services/geminiService';
 import { SubjectSelector } from './components/SubjectSelector';
 import { QuestionInput } from './components/QuestionInput';
 import { AnswerDisplay } from './components/AnswerDisplay';
 import { BookOpenIcon } from './components/icons/BookOpenIcon';
 import { NoteUploader } from './components/NoteUploader';
 import { ImageUploader } from './components/ImageUploader';
-import { SET_BOOKS } from './constants';
 import { EssaySection } from './components/EssaySection';
 
 const App: React.FC = () => {
@@ -44,7 +43,6 @@ const App: React.FC = () => {
     let currentQuestion = question.trim();
     let currentBook = selectedBook;
 
-    // Determine which question to use
     const isEssay = selectedSubject === Subject.English || selectedSubject === Subject.Kiswahili;
     if (isEssay) {
       currentQuestion = essayQuestion.trim();
@@ -59,20 +57,24 @@ const App: React.FC = () => {
 
     const notes = syllabusNotes[selectedSubject] || '';
     
-    // For Math with only image, set a default question
     if (selectedSubject === Subject.Math && image && !currentQuestion) {
       currentQuestion = "Solve the problem in the image.";
     }
 
     try {
-      const result = await getAIAnswer(selectedSubject, currentQuestion, notes, image, isEssay ? currentBook : undefined);
-      // The service now handles errors and returns a string, so we can check for error patterns if needed,
-      // but for now we'll just display it. A more robust solution might return an object { answer: string } | { error: string }
-      if (result.toLowerCase().includes("error occurred")) {
-          setError(result);
-      } else {
-          setAnswer(result);
-      }
+      await streamAIAnswer(
+        selectedSubject, 
+        currentQuestion, 
+        (chunk) => {
+          setAnswer(prev => prev + chunk);
+        },
+        (error) => {
+          setError(error);
+        },
+        notes, 
+        image, 
+        isEssay ? currentBook : undefined
+      );
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred.';
       setError(errorMessage);

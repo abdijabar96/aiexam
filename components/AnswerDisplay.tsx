@@ -1,6 +1,6 @@
-
-import React from 'react';
+import React, { useMemo } from 'react';
 import { LoadingSpinner } from './icons/LoadingSpinner';
+import { marked } from 'marked';
 
 interface AnswerDisplayProps {
   answer: string;
@@ -9,8 +9,23 @@ interface AnswerDisplayProps {
 }
 
 export const AnswerDisplay: React.FC<AnswerDisplayProps> = ({ answer, isLoading, error }) => {
+  const formattedAnswer = useMemo(() => {
+    if (!answer) return '';
+    marked.setOptions({
+        breaks: true,
+        gfm: true,
+    });
+    try {
+        return marked.parse(answer) as string;
+    } catch (e) {
+        console.error("Markdown parsing error", e);
+        // Fallback to plain text on error to avoid crashing the app
+        return answer.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+  }, [answer]);
+
   const renderContent = () => {
-    if (isLoading) {
+    if (isLoading && !answer) {
       return (
         <div className="flex flex-col items-center justify-center h-40 text-gray-400">
           <LoadingSpinner className="w-10 h-10 text-brand-green" />
@@ -31,8 +46,8 @@ export const AnswerDisplay: React.FC<AnswerDisplayProps> = ({ answer, isLoading,
 
     if (answer) {
       return (
-         <div className="prose prose-invert max-w-none text-gray-200 whitespace-pre-wrap"
-          dangerouslySetInnerHTML={{ __html: formatAnswer(answer) }}>
+         <div className="prose prose-invert max-w-none text-gray-200"
+          dangerouslySetInnerHTML={{ __html: formattedAnswer }}>
         </div>
       );
     }
@@ -43,14 +58,6 @@ export const AnswerDisplay: React.FC<AnswerDisplayProps> = ({ answer, isLoading,
             <p className="text-sm">Select a subject and ask a question to get started.</p>
         </div>
     );
-  };
-  
-  // A simple formatter to make the output more readable.
-  // This is a basic implementation and could be replaced with a markdown renderer.
-  const formatAnswer = (text: string) => {
-    return text
-      .replace(/\*\*(.*?)\*\*/g, '<strong class="font-semibold text-green-300">$1</strong>') // Bold
-      .replace(/\n/g, '<br />'); // Newlines
   };
 
   return (

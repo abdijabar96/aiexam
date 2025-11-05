@@ -28,5 +28,6 @@ export const SET_BOOKS: { [key in Subject]?: string[] } = {
     "Tumbo Lisiloshiba na Hadithi Nyingine",
     "Bembea ya Maisha",
     "Mapambazuko ya Machweo",
+    "Nguu za Jadi",
   ],
 };
